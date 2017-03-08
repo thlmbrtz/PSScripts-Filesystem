@@ -1,0 +1,49 @@
+ <# 
+.SYNOPSIS
+     NAME: CorrecFolderPermissions.ps1
+     
+.DESCRIPTION
+     This script corrects the ACL structure of c:\sources, subfolders and files on an XXYYYNVMS006 Server
+	 
+.EXAMPLE
+     CorrecFolderPermissions.ps1
+	 
+.NOTES
+      NAME: CorrecFolderPermissions.ps1
+      AUTHOR: Thomas Lambertz    
+      CREATION DATE: 28.02.2017
+      LAST MODIFIED DATE: 28.02.2017
+      LAST MODIFIED BY: Thomas Lambertz
+      VERSION: 01
+	  CHANGES: 
+#>
+ 
+
+　
+#Variables
+$Sitename=$ENV:COMPUTERNAME.Substring(0,6)
+$Servername=$Sitename + "VMS006"
+
+　
+#Takeover Ownership with actual user
+takeown /f "c:\sources" /r /d y
+
+#Takeover Inheritance from upper folder
+icacls "c:\sources" /reset /T /q /c
+
+#Set dedicated permissions for folder, subfolder and files
+icacls "c:\sources" /inheritance:r /grant "Administrators:(OI)(CI)(F)" /grant "NT AUTHORITY\SYSTEM:(OI)(CI)(F)" /grant "ALPLA\FS-$Servername-PRODAdmin_WRITE:(RX)" /grant "ALPLA\FS-$Servername-AlplaPROD_WRITE:(RX)" /T
+
+　
+#Activate Inheritance for all subfolders and files
+icacls "c:\sources\*" /reset /T /q /c
+
+　
+#Set dedicated permissions for PRODAdmin and ALPLAProd subfolder
+icacls "C:\sources\PRODAdmin\" /inheritance:r /grant "Administrators:(OI)(CI)F" /grant "NT AUTHORITY\SYSTEM:(OI)(CI)F" /grant "ALPLA\FS-$Servername-PRODAdmin_WRITE:(OI)(CI)(M)" /T
+icacls "C:\sources\ALPLAProd\" /inheritance:r /grant "Administrators:(OI)(CI)F" /grant "NT AUTHORITY\SYSTEM:(OI)(CI)F" /grant "ALPLA\FS-$Servername-AlplaPROD_WRITE:(OI)(CI)(M)"/T
+
+#Activate Inheritance in subfolders PRODAdmin and ALPLAProd
+icacls "c:\sources\PRODAdmin\*" /reset /T /q /c
+icacls "C:\sources\ALPLAProd\*" /reset /T /q /c
+ 
